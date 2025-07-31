@@ -7,52 +7,70 @@ import java.util.regex.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        String os = System.getProperty("os.name").toLowerCase();
-        Path carpeta;
-        if (os.contains("win")) {
-            carpeta = Paths.get("Consultores");
-        } else {
-            carpeta = Paths.get("Consultores");
-        }
-        // Recorrer todos los archivos XLSX en la carpeta
+        Path carpeta = Paths.get("Consultores");
+        int i = 0;
+        int index_funcionarios = 0;
+        int index_partida = 0;
+
+        // Abrimos el archivo de salida solo una vez
+        FileInputStream fisOut = new FileInputStream("Resultados/resultados.xlsx");
+        Workbook workbookOut = new XSSFWorkbook(fisOut);
+        fisOut.close(); // cerrar después de cargar
+
+        // Preparamos hojas y estilos
+        Sheet hojaPartidas = workbookOut.getSheetAt(3);
+        CellStyle estiloConBordes = workbookOut.createCellStyle();
+        estiloConBordes.setBorderTop(BorderStyle.THIN);
+        estiloConBordes.setBorderBottom(BorderStyle.THIN);
+        estiloConBordes.setBorderLeft(BorderStyle.THIN);
+        estiloConBordes.setBorderRight(BorderStyle.THIN);
+
+        Pattern patronPartida = Pattern.compile("^\\d+.*"); // empieza con número
+
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(carpeta, "*.xlsx")) {
-            int i = 0;
             for (Path archivo : stream) {
-                //System.out.println("ciclo");
                 i++;
                 try (FileInputStream fis = new FileInputStream(archivo.toFile());
                      Workbook workbook = new XSSFWorkbook(fis)) {
 
-                    Sheet hoja = workbook.getSheet("JUNIO 2025"); // o usar workbook.getSheetAt(0)
-                    System.out.println(archivo.toString());
+                    Sheet hoja = workbook.getSheet("JUNIO 2025");
+                    System.out.println("Procesando: " + archivo.getFileName());
 
                     String partidaActual = null;
-                    Pattern patronPartida = Pattern.compile("^\\d+.*"); // empieza con número
 
                     for (Row fila : hoja) {
-                        if (fila.getRowNum() < 10) continue; // Saltar encabezado
+                        if (fila.getRowNum() < 10) continue;
 
-                        Cell celda0 = fila.getCell(0); // la celda donde estaría la partida
+                        Cell celda0 = fila.getCell(0);
                         if (celda0 != null && celda0.getCellTypeEnum() == CellType.STRING) {
                             String texto = celda0.getStringCellValue().trim();
-
-                            // Comprobar si parece una partida
                             Matcher matcher = patronPartida.matcher(texto);
                             if (matcher.find()) {
-                                // Verificar si tiene fondo gris
                                 CellStyle style = celda0.getCellStyle();
                                 if (style.getFillForegroundColorColor() != null) {
                                     partidaActual = texto;
-                                    System.out.println("PARTIDA DETECTADA: " + partidaActual);
-                                    continue; // no es una fila de persona
+                                    index_partida++;
+
+                                    Row partidaRow = hojaPartidas.createRow(index_partida);
+                                    partidaRow.setHeightInPoints(hojaPartidas.getDefaultRowHeightInPoints() * 1.5f);
+
+                                    Cell cel0 = partidaRow.createCell(0);
+                                    cel0.setCellValue(index_partida);
+                                    cel0.setCellStyle(estiloConBordes);
+
+                                    Cell cel1 = partidaRow.createCell(1);
+                                    cel1.setCellValue(partidaActual);
+                                    cel1.setCellStyle(estiloConBordes);
+
+                                    continue;
                                 }
                             }
                         }
 
-                        // Si es una fila de persona (no partida)
-                        Cell nombre = fila.getCell(6); // columna G
-                        Cell cargo = fila.getCell(7);  // columna H
-                        Cell monto = fila.getCell(11); // columna L
+                        // Procesar funcionario
+                        Cell nombre = fila.getCell(6);
+                        Cell cargo = fila.getCell(7);
+                        Cell monto = fila.getCell(11);
 
                         if (nombre != null && nombre.getCellTypeEnum() == CellType.STRING && !nombre.getStringCellValue().isEmpty()) {
                             System.out.println("Partida: " + partidaActual);
@@ -60,11 +78,24 @@ public class Main {
                             System.out.println("Cargo: " + (cargo != null ? cargo.getStringCellValue() : "Sin cargo"));
                             System.out.println("Monto: " + (monto != null ? monto.getNumericCellValue() : 0));
                             System.out.println("---");
+
+                            // Aquí puedes escribir también en la hoja[0] para funcionarios si lo deseas
+                            index_funcionarios++;
                         }
                     }
                 }
             }
-            System.out.println(i + " Procesados");
         }
+
+        // Finalmente guardamos una sola vez
+        try (FileOutputStream fos = new FileOutputStream("Resultados/resultados.xlsx")) {
+            workbookOut.write(fos);
+            workbookOut.close();
+            System.out.println("✅ Archivo resultados.xlsx actualizado.");
+        }
+
+        System.out.println(i + " archivos procesados.");
+        System.out.println(index_funcionarios + " funcionarios procesados.");
+        System.out.println(index_partida + " partidas detectadas.");
     }
 }
