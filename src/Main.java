@@ -1,3 +1,7 @@
+import modelos.Cargo;
+import modelos.Contrato;
+import modelos.Funcionario;
+import modelos.Partida;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -11,7 +15,6 @@ public class Main {
         int librosProcesados = 0;
         int index = 0;
         int index_partida = 0;
-
         // Abrimos el archivo de salida solo una vez
         FileInputStream fisOut = new FileInputStream("Resultados/resultados.xlsx");
         Workbook workbookOut = new XSSFWorkbook(fisOut);
@@ -50,30 +53,33 @@ public class Main {
                                 if (style.getFillForegroundColorColor() != null) {
                                     partidaActual = texto;
                                     index_partida++;
-                                    insertarPartida(hojaPartidas, index_partida, partidaActual, archivo.getFileName() + "", estiloConBordes);
+                                    Partida partida = new Partida(index_partida, partidaActual);
+                                    insertarPartida(hojaPartidas, partida, archivo.getFileName() + "", estiloConBordes);
                                     continue;
                                 }
                             }
                         }
-
                         // Procesar funcionario
-                        Cell contrato = fila.getCell(2);
+                        Cell minuta = fila.getCell(2);
                         Cell nombre = fila.getCell(6);
-                        Cell cargo = fila.getCell(7);
+                        Cell nombre_cargo = fila.getCell(7);
                         Cell monto = fila.getCell(11);
 
                         if (nombre != null && nombre.getCellTypeEnum() == CellType.STRING && !nombre.getStringCellValue().isEmpty()) {
                             System.out.println("Partida: " + partidaActual);
                             System.out.println("Nombre: " + nombre.getStringCellValue());
-                            System.out.println("Contrato: " + contrato.getStringCellValue());
-                            System.out.println("Cargo: " + (cargo != null ? cargo.getStringCellValue() : "Sin cargo"));
+                            System.out.println("Contrato: " + minuta.getStringCellValue());
+                            System.out.println("Cargo: " + (nombre_cargo != null ? nombre_cargo.getStringCellValue() : "Sin cargo"));
                             System.out.println("Monto: " + (monto != null ? monto.getNumericCellValue() : 0));
                             System.out.println("---");
                             index++;
-                            // Aquí puedes escribir también en la hoja[0] para funcionarios si lo deseas
-                            insertarFuncionario(hojaFuncionarios, index, nombre.getStringCellValue(), estiloConBordes);
-                            insertarCargo(hojaCargos, index, cargo != null ? cargo.getStringCellValue() : "Sin cargo", estiloConBordes);
-                            insertarContrato(hojaContratos, index, contrato.getStringCellValue(), estiloConBordes);
+                            Funcionario funcionario = new Funcionario(index, nombre.getStringCellValue());
+                            Cargo cargo = new Cargo(index, nombre_cargo.getStringCellValue());
+                            Contrato contrato = new Contrato(index, minuta.getStringCellValue());
+                            // Insertando datos en las hojas
+                            insertarFuncionario(hojaFuncionarios, funcionario, estiloConBordes);
+                            insertarCargo(hojaCargos, cargo, estiloConBordes);
+                            insertarContrato(hojaContratos, contrato, estiloConBordes);
                         }
                     }
                 }
@@ -92,50 +98,50 @@ public class Main {
         System.out.println(index_partida + " partidas detectadas.");
     }
 
-    public static void insertarPartida(Sheet hojaPartidas, int index_partida, String partidaActual, String archivoActual, CellStyle estiloConBordes) {
-        Row partidaRow = hojaPartidas.createRow(index_partida);
+    public static void insertarPartida(Sheet hojaPartidas, Partida partida, String archivoActual, CellStyle estiloConBordes) {
+        Row partidaRow = hojaPartidas.createRow(partida.getId());
         partidaRow.setHeightInPoints(hojaPartidas.getDefaultRowHeightInPoints() * 1.5f);
         Cell cel0 = partidaRow.createCell(0);
-        cel0.setCellValue(index_partida);
+        cel0.setCellValue(partida.getId());
         cel0.setCellStyle(estiloConBordes);
         Cell cel1 = partidaRow.createCell(1);
-        cel1.setCellValue(partidaActual);
+        cel1.setCellValue(partida.getNombre());
         cel1.setCellStyle(estiloConBordes);
         Cell cel2 = partidaRow.createCell(2);
         cel2.setCellValue(archivoActual);
         cel2.setCellStyle(estiloConBordes);
     }
 
-    public static void insertarFuncionario(Sheet hojaFuncionarios, int index, String nombre, CellStyle estiloConBordes) {
-        Row funcionarioRow = hojaFuncionarios.createRow(index);
+    public static void insertarFuncionario(Sheet hojaFuncionarios, Funcionario funcionario, CellStyle estiloConBordes) {
+        Row funcionarioRow = hojaFuncionarios.createRow(funcionario.getId());
         funcionarioRow.setHeightInPoints(hojaFuncionarios.getDefaultRowHeightInPoints() * 1.5f);
         Cell cel0 = funcionarioRow.createCell(0);
-        cel0.setCellValue(index);
+        cel0.setCellValue(funcionario.getId());
         cel0.setCellStyle(estiloConBordes);
         Cell cel1 = funcionarioRow.createCell(1);
-        cel1.setCellValue(nombre);
+        cel1.setCellValue(funcionario.getNombre());
         cel1.setCellStyle(estiloConBordes);
     }
 
-    public static void insertarCargo(Sheet hojaCargos, int index, String nombre, CellStyle estiloConBordes) {
-        Row funcionarioRow = hojaCargos.createRow(index);
+    public static void insertarCargo(Sheet hojaCargos, Cargo cargo, CellStyle estiloConBordes) {
+        Row funcionarioRow = hojaCargos.createRow(cargo.getId());
         funcionarioRow.setHeightInPoints(hojaCargos.getDefaultRowHeightInPoints() * 1.5f);
         Cell cel0 = funcionarioRow.createCell(0);
-        cel0.setCellValue(index);
+        cel0.setCellValue(cargo.getId());
         cel0.setCellStyle(estiloConBordes);
         Cell cel1 = funcionarioRow.createCell(1);
-        cel1.setCellValue(nombre);
+        cel1.setCellValue(cargo.getNombre());
         cel1.setCellStyle(estiloConBordes);
     }
 
-    public static void insertarContrato(Sheet hojaContratos, int index, String nombre, CellStyle estiloConBordes) {
-        Row funcionarioRow = hojaContratos.createRow(index);
+    public static void insertarContrato(Sheet hojaContratos, Contrato contrato, CellStyle estiloConBordes) {
+        Row funcionarioRow = hojaContratos.createRow(contrato.getId());
         funcionarioRow.setHeightInPoints(hojaContratos.getDefaultRowHeightInPoints() * 1.5f);
         Cell cel0 = funcionarioRow.createCell(0);
-        cel0.setCellValue(index);
+        cel0.setCellValue(contrato.getId());
         cel0.setCellStyle(estiloConBordes);
         Cell cel1 = funcionarioRow.createCell(1);
-        cel1.setCellValue(nombre);
+        cel1.setCellValue(contrato.getMinuta());
         cel1.setCellStyle(estiloConBordes);
     }
 }
