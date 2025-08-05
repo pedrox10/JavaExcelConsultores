@@ -7,6 +7,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.*;
 
 public class Main {
@@ -54,13 +59,15 @@ public class Main {
                                     partidaActual = texto;
                                     index_partida++;
                                     Partida partida = new Partida(index_partida, partidaActual);
-                                    insertarPartida(hojaPartidas, partida, archivo.getFileName() + "", estiloConBordes);
+                                    insertarPartida(hojaPartidas, partida, estiloConBordes);
                                     continue;
                                 }
                             }
                         }
                         // Procesar funcionario
                         Cell minuta = fila.getCell(2);
+                        Cell carnet = fila.getCell(3);
+                        Cell celdaFecha = fila.getCell(4);
                         Cell nombre = fila.getCell(6);
                         Cell nombre_cargo = fila.getCell(7);
                         Cell monto = fila.getCell(11);
@@ -68,16 +75,31 @@ public class Main {
                         if (nombre != null && nombre.getCellTypeEnum() == CellType.STRING && !nombre.getStringCellValue().isEmpty()) {
                             System.out.println("Partida: " + partidaActual);
                             System.out.println("Nombre: " + nombre.getStringCellValue());
+                            String[] arrayNombre = nombre.getStringCellValue().split(" ");
+                            String paterno = "";
+                            String materno = "";
+                            String nombres = "";
+                            if(arrayNombre.length > 2){
+                                paterno = arrayNombre[0];
+                                materno = arrayNombre[1];
+                                nombres = String.join(" ", Arrays.copyOfRange(arrayNombre, 2, arrayNombre.length));
+                            } else if (arrayNombre.length == 2) {
+                                paterno = arrayNombre[0];
+                                nombres = arrayNombre[1];
+                            }
+                            LocalDate fecha = obtenerFecha(celdaFecha);
+                            String fechaNac = (fecha != null) ? fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                            int ci = (int) (carnet != null ? carnet.getNumericCellValue() : 0);
                             System.out.println("Contrato: " + minuta.getStringCellValue());
                             System.out.println("Cargo: " + (nombre_cargo != null ? nombre_cargo.getStringCellValue() : "Sin cargo"));
                             System.out.println("Monto: " + (monto != null ? monto.getNumericCellValue() : 0));
                             System.out.println("---");
                             index++;
-                            Funcionario funcionario = new Funcionario(index, nombre.getStringCellValue());
+                            Funcionario funcionario = new Funcionario(index, paterno, materno, nombres, fechaNac, ci);
                             Cargo cargo = new Cargo(index, nombre_cargo.getStringCellValue());
                             Contrato contrato = new Contrato(index, minuta.getStringCellValue());
                             // Insertando datos en las hojas
-                            insertarFuncionario(hojaFuncionarios, funcionario, estiloConBordes);
+                            insertarFuncionario(hojaFuncionarios, funcionario, archivo.getFileName() + "", estiloConBordes);
                             insertarCargo(hojaCargos, cargo, estiloConBordes);
                             insertarContrato(hojaContratos, contrato, estiloConBordes);
                         }
@@ -85,20 +107,18 @@ public class Main {
                 }
             }
         }
-
         // Finalmente guardamos una sola vez
         try (FileOutputStream fos = new FileOutputStream("Resultados/resultados.xlsx")) {
             workbookOut.write(fos);
             workbookOut.close();
             System.out.println("✅ Archivo resultados.xlsx actualizado.");
         }
-
         System.out.println(librosProcesados + " archivos procesados.");
         System.out.println(index + " funcionarios procesados.");
         System.out.println(index_partida + " partidas detectadas.");
     }
 
-    public static void insertarPartida(Sheet hojaPartidas, Partida partida, String archivoActual, CellStyle estiloConBordes) {
+    public static void insertarPartida(Sheet hojaPartidas, Partida partida, CellStyle estiloConBordes) {
         Row partidaRow = hojaPartidas.createRow(partida.getId());
         partidaRow.setHeightInPoints(hojaPartidas.getDefaultRowHeightInPoints() * 1.5f);
         Cell cel0 = partidaRow.createCell(0);
@@ -107,20 +127,32 @@ public class Main {
         Cell cel1 = partidaRow.createCell(1);
         cel1.setCellValue(partida.getNombre());
         cel1.setCellStyle(estiloConBordes);
-        Cell cel2 = partidaRow.createCell(2);
-        cel2.setCellValue(archivoActual);
-        cel2.setCellStyle(estiloConBordes);
     }
 
-    public static void insertarFuncionario(Sheet hojaFuncionarios, Funcionario funcionario, CellStyle estiloConBordes) {
+    public static void insertarFuncionario(Sheet hojaFuncionarios, Funcionario funcionario, String archivoActual, CellStyle estiloConBordes) {
         Row funcionarioRow = hojaFuncionarios.createRow(funcionario.getId());
         funcionarioRow.setHeightInPoints(hojaFuncionarios.getDefaultRowHeightInPoints() * 1.5f);
         Cell cel0 = funcionarioRow.createCell(0);
         cel0.setCellValue(funcionario.getId());
         cel0.setCellStyle(estiloConBordes);
         Cell cel1 = funcionarioRow.createCell(1);
-        cel1.setCellValue(funcionario.getNombre());
+        cel1.setCellValue(funcionario.getNombres());
         cel1.setCellStyle(estiloConBordes);
+        Cell cel2 = funcionarioRow.createCell(2);
+        cel2.setCellValue(funcionario.getPaterno());
+        cel2.setCellStyle(estiloConBordes);
+        Cell cel3 = funcionarioRow.createCell(3);
+        cel3.setCellValue(funcionario.getMaterno());
+        cel3.setCellStyle(estiloConBordes);
+        Cell cel4 = funcionarioRow.createCell(4);
+        cel4.setCellValue(funcionario.getFechaNac());
+        cel4.setCellStyle(estiloConBordes);
+        Cell cel5 = funcionarioRow.createCell(5);
+        cel5.setCellValue(funcionario.getCi());
+        cel5.setCellStyle(estiloConBordes);
+        Cell cel6 = funcionarioRow.createCell(6);
+        cel6.setCellValue(archivoActual);
+        cel6.setCellStyle(estiloConBordes);
     }
 
     public static void insertarCargo(Sheet hojaCargos, Cargo cargo, CellStyle estiloConBordes) {
@@ -143,5 +175,13 @@ public class Main {
         Cell cel1 = funcionarioRow.createCell(1);
         cel1.setCellValue(contrato.getMinuta());
         cel1.setCellStyle(estiloConBordes);
+    }
+
+    public static LocalDate obtenerFecha(Cell celda) {
+        if (celda != null && celda.getCellTypeEnum() == CellType.NUMERIC && DateUtil.isCellDateFormatted(celda)) {
+            Date fechaJava = celda.getDateCellValue();
+            return fechaJava.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        return null;
     }
 }
