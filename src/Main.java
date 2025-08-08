@@ -52,7 +52,6 @@ public class Main {
 
                     for (Row fila : hoja) {
                         if (fila.getRowNum() < 10) continue;
-
                         Cell celda0 = fila.getCell(0);
                         if (celda0 != null && celda0.getCellTypeEnum() == CellType.STRING) {
                             String texto = celda0.getStringCellValue().trim();
@@ -74,7 +73,9 @@ public class Main {
                         Cell celdaFecha = fila.getCell(4);
                         Cell nombre = fila.getCell(6);
                         Cell nombre_cargo = fila.getCell(7);
-                        Cell monto = fila.getCell(11);
+                        Cell celdaMonto = fila.getCell(11);
+                        Cell celdaFechaIni = fila.getCell(8);
+                        Cell celdaFechaFin = fila.getCell(9);
 
                         if (nombre != null && nombre.getCellTypeEnum() == CellType.STRING && !nombre.getStringCellValue().isEmpty()) {
                             System.out.println("Nombre: " + nombre.getStringCellValue());
@@ -106,11 +107,16 @@ public class Main {
                             System.out.println("---");
                             index++;
                             Funcionario funcionario = new Funcionario(index, paterno, materno, nombres, fechaNac, ci, genero);
-                            Cargo cargo = new Cargo(index, nombre_cargo.getStringCellValue());
-                            Contrato contrato = new Contrato(index, minuta.getStringCellValue());
-                            // Insertando datos en las hojas
                             insertarFuncionario(hojaFuncionarios, funcionario, archivo.getFileName() + "", estiloConBordes);
+                            int monto = (int) (celdaMonto != null ? celdaMonto.getNumericCellValue() : 0);
+                            int nivel = obtenerNivel(monto);
+                            Cargo cargo = new Cargo(index, nombre_cargo.getStringCellValue(), nivel, index_partida);
                             insertarCargo(hojaCargos, cargo, estiloConBordes);
+                            LocalDate ldIni = obtenerFecha(celdaFechaIni);
+                            LocalDate ldFin = obtenerFecha(celdaFechaFin);
+                            String fechaInicio = (ldIni != null) ? ldIni.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                            String fechaConclusion = (ldFin != null) ? ldFin.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                            Contrato contrato = new Contrato(index, minuta.getStringCellValue(), fechaInicio, fechaConclusion, monto);
                             insertarContrato(hojaContratos, contrato, estiloConBordes);
                         }
                     }
@@ -177,6 +183,12 @@ public class Main {
         Cell cel1 = funcionarioRow.createCell(1);
         cel1.setCellValue(cargo.getNombre());
         cel1.setCellStyle(estiloConBordes);
+        Cell cel2 = funcionarioRow.createCell(2);
+        cel2.setCellValue(cargo.getNivel());
+        cel2.setCellStyle(estiloConBordes);
+        Cell cel3 = funcionarioRow.createCell(3);
+        cel3.setCellValue(cargo.getIdPartida());
+        cel3.setCellStyle(estiloConBordes);
     }
 
     public static void insertarContrato(Sheet hojaContratos, Contrato contrato, CellStyle estiloConBordes) {
@@ -188,6 +200,15 @@ public class Main {
         Cell cel1 = funcionarioRow.createCell(1);
         cel1.setCellValue(contrato.getMinuta());
         cel1.setCellStyle(estiloConBordes);
+        Cell cel2 = funcionarioRow.createCell(2);
+        cel2.setCellValue(contrato.getFechaInicio());
+        cel2.setCellStyle(estiloConBordes);
+        Cell cel3 = funcionarioRow.createCell(3);
+        cel3.setCellValue(contrato.getFechaConclusion());
+        cel3.setCellStyle(estiloConBordes);
+        Cell cel4 = funcionarioRow.createCell(4);
+        cel4.setCellValue(contrato.getMonto());
+        cel4.setCellStyle(estiloConBordes);
     }
 
     public static LocalDate obtenerFecha(Cell celda) {
@@ -218,6 +239,26 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public static int obtenerNivel(int monto) {
+        switch (monto) {
+            case 3435:  return 14;
+            case 3553:  return 13;
+            case 3761:  return 12;
+            case 3958:  return 11;
+            case 4379:  return 10;
+            case 4586:  return 9;
+            case 4786:  return 8;
+            case 5200:  return 7;
+            case 5707:  return 6;
+            case 6290:  return 5;
+            case 7295:  return 4;
+            case 8186:  return 3;
+            case 10494: return 2;
+            case 16766: return 1;
+            default:    return 0; // No encontrado
         }
     }
 }
