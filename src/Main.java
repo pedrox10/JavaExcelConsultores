@@ -4,8 +4,12 @@ import modelos.Funcionario;
 import modelos.Partida;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.JSONObject;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -73,29 +77,35 @@ public class Main {
                         Cell monto = fila.getCell(11);
 
                         if (nombre != null && nombre.getCellTypeEnum() == CellType.STRING && !nombre.getStringCellValue().isEmpty()) {
-                            System.out.println("Partida: " + partidaActual);
                             System.out.println("Nombre: " + nombre.getStringCellValue());
                             String[] arrayNombre = nombre.getStringCellValue().split(" ");
                             String paterno = "";
                             String materno = "";
                             String nombres = "";
                             if(arrayNombre.length > 2){
-                                paterno = arrayNombre[0];
-                                materno = arrayNombre[1];
-                                nombres = String.join(" ", Arrays.copyOfRange(arrayNombre, 2, arrayNombre.length));
+                                paterno = arrayNombre[0].trim();
+                                materno = arrayNombre[1].trim();
+                                nombres = String.join(" ", Arrays.copyOfRange(arrayNombre, 2, arrayNombre.length)).trim();
                             } else if (arrayNombre.length == 2) {
-                                paterno = arrayNombre[0];
-                                nombres = arrayNombre[1];
+                                paterno = arrayNombre[0].trim();
+                                nombres = arrayNombre[1].trim();
                             }
                             LocalDate fecha = obtenerFecha(celdaFecha);
                             String fechaNac = (fecha != null) ? fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
                             int ci = (int) (carnet != null ? carnet.getNumericCellValue() : 0);
-                            System.out.println("Contrato: " + minuta.getStringCellValue());
-                            System.out.println("Cargo: " + (nombre_cargo != null ? nombre_cargo.getStringCellValue() : "Sin cargo"));
-                            System.out.println("Monto: " + (monto != null ? monto.getNumericCellValue() : 0));
+                            String respuesta = obtenerGenero(nombres);
+                            String genero = "";
+                            if(respuesta.equalsIgnoreCase("female")) {
+                                genero = "Femenino";
+                            } else {
+                                if(respuesta.equalsIgnoreCase("male")) {
+                                    genero = "Masculino";
+                                }
+                            }
+                            Thread.sleep(500);
                             System.out.println("---");
                             index++;
-                            Funcionario funcionario = new Funcionario(index, paterno, materno, nombres, fechaNac, ci);
+                            Funcionario funcionario = new Funcionario(index, paterno, materno, nombres, fechaNac, ci, genero);
                             Cargo cargo = new Cargo(index, nombre_cargo.getStringCellValue());
                             Contrato contrato = new Contrato(index, minuta.getStringCellValue());
                             // Insertando datos en las hojas
@@ -151,8 +161,11 @@ public class Main {
         cel5.setCellValue(funcionario.getCi());
         cel5.setCellStyle(estiloConBordes);
         Cell cel6 = funcionarioRow.createCell(6);
-        cel6.setCellValue(archivoActual);
+        cel6.setCellValue(funcionario.getGenero());
         cel6.setCellStyle(estiloConBordes);
+        Cell cel7 = funcionarioRow.createCell(7);
+        cel7.setCellValue(archivoActual);
+        cel7.setCellStyle(estiloConBordes);
     }
 
     public static void insertarCargo(Sheet hojaCargos, Cargo cargo, CellStyle estiloConBordes) {
@@ -183,5 +196,28 @@ public class Main {
             return fechaJava.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         }
         return null;
+    }
+
+    public static String obtenerGenero(String nombres) {
+        try {
+            String nombresCodificados = URLEncoder.encode(nombres, "UTF-8");
+            String apiUrl = "https://api.genderize.io/?name=" + nombresCodificados + "&country_id=BO&apikey=9503d9fe0f7557c932b6662e20c0d09d";
+            URL url = new URL(apiUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            StringBuilder response = new StringBuilder();
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            JSONObject json = new JSONObject(response.toString());
+            String gender = json.optString("gender", null);
+            return gender;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
