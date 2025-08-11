@@ -294,6 +294,7 @@ public class Main {
             case "MARCELO":
             case "MIJAIL":
             case "JOSE NELSON":
+            case "ELIAS SAMUEL":
                 return "Masculino";
 
             // Femeninos
@@ -411,7 +412,6 @@ public class Main {
             case "MARGOT TOMASA":
             case "BRENDA ANDREA":
             case "NATALI GEOVANNA":
-            case "HAZEL":
             case "ANDREA ALEJANDRA":
             case "ESTHER":
             case "MARY LIZETH":
