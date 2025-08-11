@@ -94,16 +94,7 @@ public class Main {
                             LocalDate fecha = obtenerFecha(celdaFecha);
                             String fechaNac = (fecha != null) ? fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
                             int ci = (int) (carnet != null ? carnet.getNumericCellValue() : 0);
-                            String respuesta = obtenerGenero(nombres);
-                            String genero = "";
-                            if(respuesta.equalsIgnoreCase("female")) {
-                                genero = "Femenino";
-                            } else {
-                                if(respuesta.equalsIgnoreCase("male")) {
-                                    genero = "Masculino";
-                                }
-                            }
-                            Thread.sleep(500);
+                            String genero = obtenerGenero(nombres);
                             System.out.println("---");
                             index++;
                             Funcionario funcionario = new Funcionario(index, paterno, materno, nombres, fechaNac, ci, genero);
@@ -219,10 +210,10 @@ public class Main {
         return null;
     }
 
-    public static String obtenerGenero(String nombres) {
+    /*public static String obtenerGenero(String nombres) {
         try {
             String nombresCodificados = URLEncoder.encode(nombres, "UTF-8");
-            String apiUrl = "https://api.genderize.io/?name=" + nombresCodificados + "&country_id=BO&apikey=9503d9fe0f7557c932b6662e20c0d09d";
+            String apiUrl = "https://api.genderize.io/?name=" + nombresCodificados + "&country_id=BO&apikey=14674a6ff426d39cd8b09d21443952c4";
             URL url = new URL(apiUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -240,7 +231,7 @@ public class Main {
             e.printStackTrace();
             return null;
         }
-    }
+    }*/
 
     public static int obtenerNivel(int monto) {
         switch (monto) {
@@ -259,6 +250,177 @@ public class Main {
             case 10494: return 2;
             case 16766: return 1;
             default:    return 0; // No encontrado
+        }
+    }
+
+    public static String obtenerGenero(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return "";
+        }
+        nombre = nombre.trim().toUpperCase();
+
+        switch (nombre) {
+            // Masculinos
+            case "OLIVER FERNANDO":
+            case "ROMER FREDDY":
+            case "ERIK ANDRE":
+            case "CLEMENTE":
+            case "ANGEL JHEYSON":
+            case "JOSE CARLOS":
+            case "JUAN CARLOS":
+            case "IVAN":
+            case "GROVER":
+            case "HENRY":
+            case "GONZALO":
+            case "CARLOS BORIS":
+            case "JHOEL ALEJANDRO":
+            case "MARCO VINICIO":
+            case "RAMIRO":
+            case "PABLO":
+            case "CONSTANCIO":
+            case "ARIEL":
+            case "BENJI":
+            case "SALVADOR KARIM":
+            case "FERNANDO":
+            case "BRAYAN FERNANDO":
+            case "JOSE BELTRAN":
+            case "RAUL":
+            case "ALBERTO":
+            case "ORLANDO DANNY":
+            case "DANIEL":
+            case "SAMUEL ALEX":
+            case "BRIAN DANNY":
+            case "FABIAN JUAN":
+            case "MARCELO":
+            case "MIJAIL":
+            case "JOSE NELSON":
+                return "Masculino";
+
+            // Femeninos
+            case "KATERIN LINET":
+            case "CIELO STEFANIA":
+            case "ELSA":
+            case "MARIA LUISA":
+            case "YOLANDA":
+            case "NORMA":
+            case "ELIZABET XIMENA":
+            case "LIZETH":
+            case "JUDITH CELENA":
+            case "ZAIDA":
+            case "ELVIA":
+            case "FABIOLA":
+            case "PAOLA":
+            case "DANIELA":
+            case "MARGARITA":
+            case "BEATRIZ":
+            case "VIRGINIA":
+            case "ELIZABETH SUSANA":
+            case "NATALY":
+            case "VANESSA":
+            case "MARIBEL ROCIO":
+            case "AMANDA":
+            case "NANCY":
+            case "GIMENA":
+            case "DANIA":
+            case "ASUNTA":
+            case "JHOSELYN":
+            case "MICAELA VANESA":
+            case "VILMA":
+            case "NOELIA CLAUDIA":
+            case "TANIA ROSARIO":
+            case "LILIANA PATRICIA":
+            case "GUETSI MAYA":
+            case "NIKA YOLANDA":
+            case "LEICY ALEJANDRA":
+            case "RELINDA":
+            case "MARIA LIZETH":
+            case "MAURA":
+            case "EVELIN WENDY":
+            case "MARIZOL":
+            case "YAMILET MILAYDA":
+            case "ROSSYZELA":
+            case "LEYDI":
+            case "LUZ MARIAN":
+            case "KARLA LORENA":
+            case "LINDA VERONICA":
+            case "MARIA ELVIA":
+            case "KAREN OLIVIA":
+            case "DANIDZA":
+            case "MARIBEL":
+            case "ANAI":
+            case "MARTHA":
+            case "AIDEE":
+            case "CARLA ELIZABETH":
+            case "CARMEN LIZZETTE":
+            case "SILVIA EUGENIA":
+            case "LIZ":
+            case "ELIZABETH":
+            case "CLAUDIA":
+            case "NELY":
+            case "VANIA":
+            case "ADELA":
+            case "JULIETA":
+            case "MARTHA LILIANA":
+            case "CATHERINE PATRICIA":
+            case "JIMENA":
+            case "ANDREA":
+            case "CRISTINA":
+            case "MARIA LEYDI":
+            case "MARISOL":
+            case "MARIANA YOLANDA":
+            case "JULIETA CRISTINA":
+            case "MARITZA ZOBEIDA":
+            case "MARIA LOURDES":
+            case "MILEYKA":
+            case "ANGELA":
+            case "IBETH FABIOLA":
+            case "GUILLERMINA":
+            case "CINTHIA":
+            case "EVELYN DAYANA":
+            case "TECHY":
+            case "WENDY":
+            case "LIDIA":
+            case "ARMINDA":
+            case "NICCOL":
+            case "JULIA":
+            case "GERALDINE KIMBERLY":
+            case "FIDELIA":
+            case "REBECA":
+            case "ZULMA ANTONIA":
+            case "MARINA":
+            case "ANEYDA":
+            case "ANDREA HELEN":
+            case "ELIANA VERONICA":
+            case "DAYANA DEL ROSARIO":
+            case "ADRIANA JACKELINE":
+            case "ADRIANA YASMIN":
+            case "JESICA KARINA":
+            case "JENNIFER":
+            case "ELIANA":
+            case "ANA MARIA":
+            case "SILENE":
+            case "GEORGINA":
+            case "JOANA":
+            case "MIRIAN":
+            case "ROSSE MERY":
+            case "SELENE":
+            case "CLEIDY":
+            case "MARIA NEISA":
+            case "DIANECA":
+            case "NICOLE":
+            case "MARGOT TOMASA":
+            case "BRENDA ANDREA":
+            case "NATALI GEOVANNA":
+            case "HAZEL":
+            case "ANDREA ALEJANDRA":
+            case "ESTHER":
+            case "MARY LIZETH":
+            case "DEYSI":
+            case "NOEMI":
+                return "Femenino";
+
+            default:
+                return "";
         }
     }
 }
