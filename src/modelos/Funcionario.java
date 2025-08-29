@@ -7,6 +7,7 @@ public class Funcionario {
     private String nombres;
     private String fechaNac;
     private int ci;
+    private String textoCi;
     private String genero;
 
     public Funcionario(int id, String paterno, String materno, String nombres, String fechaNac, int ci, String genero) {
@@ -19,6 +20,16 @@ public class Funcionario {
         this.genero = genero;
     }
 
+    public Funcionario(int id, String paterno, String materno, String nombres, String fechaNac, String textoCi, String genero) {
+        this.id = id;
+        this.paterno = paterno;
+        this.materno = materno;
+        this.nombres = nombres;
+        this.fechaNac = fechaNac;
+        this.textoCi = textoCi;
+        this.genero = genero;
+    }
+
     public int getId() { return id; }
     public String getNombres() { return nombres; }
     public String getPaterno() { return paterno; }
@@ -26,4 +37,6 @@ public class Funcionario {
     public String getFechaNac() { return fechaNac; }
     public int getCi() { return ci; }
     public String getGenero() { return genero; }
-}
+    public String getTextoCi() {
+        return textoCi;
+    }}

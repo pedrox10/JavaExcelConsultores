@@ -4,12 +4,8 @@ import modelos.Funcionario;
 import modelos.Partida;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -209,29 +205,6 @@ public class Main {
         }
         return null;
     }
-
-    /*public static String obtenerGenero(String nombres) {
-        try {
-            String nombresCodificados = URLEncoder.encode(nombres, "UTF-8");
-            String apiUrl = "https://api.genderize.io/?name=" + nombresCodificados + "&country_id=BO&apikey=14674a6ff426d39cd8b09d21443952c4";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            StringBuilder response = new StringBuilder();
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            JSONObject json = new JSONObject(response.toString());
-            String gender = json.optString("gender", null);
-            return gender;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }*/
 
     public static int obtenerNivel(int monto) {
         switch (monto) {
